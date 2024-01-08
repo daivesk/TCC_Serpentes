@@ -14,7 +14,6 @@ from keras.src.utils.layer_utils import print_summary
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 from sklearn.model_selection import KFold
 from sklearn.utils import resample
-from tensorflow import keras
 from pygbif import species, occurrences
 
 # mudar para 'peçonhento' e 'não-peçonhento'
@@ -51,7 +50,7 @@ labels = ['pequeno', 'medio', 'grande']
 #         snake_images[snake_name] = images
 #         # now snake_images is a dictionary with species names as keys as list of image URLs as values
 
-
+# not needed
 def pre_built_dogs_cats():
     CATS = ['Abyssinian', 'Bengal', 'Birman', 'Bombay', 'British_Shorthair', 'Egyptian_Mau', 'Maine_Coon', 'Persian',
             'Ragdoll', 'Russian_Blue', 'Siamese', 'Sphynx']
@@ -331,7 +330,7 @@ def vgg16_neural_net():
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
-
+    # como fazer leitura das imagens para gerar os k-folds
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
     k_fold_input, k_fold_labels = k_fold_batches.next()
@@ -356,6 +355,7 @@ def vgg16_neural_net():
         for layer in model.layers:
             layer.trainable = False
 
+        # units => número de espécies das quais eu tenho imagens
         model.add(keras.layers.Dense(units=3, activation='softmax'))
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001),
                       loss='categorical_crossentropy',
@@ -371,7 +371,7 @@ def vgg16_neural_net():
 
         model.save('models/vgg16/' + str(fold_no))
         # model = keras.models.load_model('models/vgg16/' + str(fold_no))
-        # models_per_fold.append(model)
+        # models_per_fold.append(model) ----ignorar
 
         scores = model.evaluate(k_fold_input[test], k_fold_labels[test], verbose=2)
         scores_per_fold.append(scores)
