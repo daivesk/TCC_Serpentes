@@ -15,6 +15,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, f1_score
 from sklearn.model_selection import KFold
 from sklearn.utils import resample
 from pygbif import species, occurrences
+from PIL import Image
 
 labels = ['medico', 'nao-medico']
 
@@ -327,16 +328,16 @@ def plot_confusion_matrix(cm, classes, title, save_file=None, normalize=False, c
 
 def vgg16_neural_net():
     # k_fold_path = 'mixed_dataset/k-fold'
-    k_fold_path = 'imageSet'
+    k_fold_path = './imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input) \
-        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
+        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=300)
     # como fazer leitura das imagens para gerar os k-folds
-    kf = KFold(n_splits=5, shuffle=True, random_state=42)
+    kf = KFold(n_splits=20, shuffle=True, random_state=42)
 
     k_fold_input, k_fold_labels = k_fold_batches.next()
 
-    fold_no = 1
+    fold_no = 20
     history_per_fold = []
     histories = {'accuracy': [], 'f1_score': [], 'val_accuracy': [], 'val_f1_score': []}
     scores_per_fold = []
@@ -363,7 +364,7 @@ def vgg16_neural_net():
                       metrics=['accuracy', Precision(), Recall(), F1Score()])
 
         history = model.fit(k_fold_input[train], k_fold_labels[train],
-                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=20, verbose=2)
+                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=20, verbose=3)
         history_per_fold.append(history)
         histories['accuracy'].append(history.history['accuracy'])
         histories['f1_score'].append(np.mean(history.history['f1_score'], axis=-1))
@@ -374,7 +375,7 @@ def vgg16_neural_net():
         # model = keras.models.load_model('models/vgg16/' + str(fold_no))
         # models_per_fold.append(model) ----ignorar
 
-        scores = model.evaluate(k_fold_input[test], k_fold_labels[test], verbose=2)
+        scores = model.evaluate(k_fold_input[test], k_fold_labels[test], verbose=3)
         scores_per_fold.append(scores)
 
         predict = model.predict(x=k_fold_input[test])
@@ -1055,11 +1056,11 @@ def print_preprocess_images():
 if __name__ == '__main__':
     # pre_built_dogs_cats()
     # custom_neural_net()
-    # vgg16_neural_net()
+    vgg16_neural_net()
     # resnet50_neural_net()
     # densenet201_neural_net()
     # inception_neural_net()
-    inception_bagging()
+    # inception_bagging()
     # predict_and_plot('models/vgg16/1')
     # manual_evaluation()
     # print_preprocess_images()
