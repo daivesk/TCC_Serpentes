@@ -16,8 +16,7 @@ from sklearn.model_selection import KFold
 from sklearn.utils import resample
 from pygbif import species, occurrences
 
-# mudar para 'peçonhento' e 'não-peçonhento'
-labels = ['pequeno', 'medio', 'grande']
+labels = ['medico', 'nao-medico']
 
 
 # def snakes_in_brazil():
@@ -51,102 +50,102 @@ labels = ['pequeno', 'medio', 'grande']
 #         # now snake_images is a dictionary with species names as keys as list of image URLs as values
 
 # not needed
-def pre_built_dogs_cats():
-    CATS = ['Abyssinian', 'Bengal', 'Birman', 'Bombay', 'British_Shorthair', 'Egyptian_Mau', 'Maine_Coon', 'Persian',
-            'Ragdoll', 'Russian_Blue', 'Siamese', 'Sphynx']
-    cats_images = []
-    dogs_images = []
-    for img in glob.glob('images/*.jpg'):
-        if any(cat in img for cat in CATS):
-            cats_images.append(img)
-        else:
-            dogs_images.append(img)
-    print('There are {} images of cats'.format(len(cats_images)))
-    print('There are {} images of dogs'.format(len(dogs_images)))
-    # shuffle the lists
-    np.random.shuffle(cats_images)
-    np.random.shuffle(dogs_images)
-    # split the data into train, validation and test sets
-    train_d, val_d, test_d = np.split(dogs_images, [int(len(dogs_images) * 0.7), int(len(dogs_images) * 0.8)])
-    train_c, val_c, test_c = np.split(cats_images, [int(len(cats_images) * 0.7), int(len(cats_images) * 0.8)])
-    train_dog_df = pd.DataFrame({'image': train_d, 'label': 'dog'})
-    val_dog_df = pd.DataFrame({'image': val_d, 'label': 'dog'})
-    test_dog_df = pd.DataFrame({'image': test_d, 'label': 'dog'})
-    train_cat_df = pd.DataFrame({'image': train_c, 'label': 'cat'})
-    val_cat_df = pd.DataFrame({'image': val_c, 'label': 'cat'})
-    test_cat_df = pd.DataFrame({'image': test_c, 'label': 'cat'})
-    train_df = pd.concat([train_dog_df, train_cat_df])
-    val_df = pd.concat([val_dog_df, val_cat_df])
-    test_df = pd.concat([test_dog_df, test_cat_df])
-    print('There are {} images for training'.format(len(train_df)))
-    print('There are {} images for validation'.format(len(val_df)))
-    print('There are {} images for testing'.format(len(test_df)))
-    BATCH_SIZE = 32
-    IMG_HEIGHT = 224
-    IMG_WIDTH = 224
-    trainGenerator = ImageDataGenerator(rescale=1. / 255.)
-    valGenerator = ImageDataGenerator(rescale=1. / 255.)
-    testGenerator = ImageDataGenerator(rescale=1. / 255.)
-    trainDataset = trainGenerator.flow_from_dataframe(
-        dataframe=train_df,
-        class_mode="binary",
-        x_col="image",
-        y_col="label",
-        batch_size=BATCH_SIZE,
-        seed=42,
-        shuffle=True,
-        target_size=(IMG_HEIGHT, IMG_WIDTH)
-    )
-    valDataset = valGenerator.flow_from_dataframe(
-        dataframe=val_df,
-        class_mode='binary',
-        x_col="image",
-        y_col="label",
-        batch_size=BATCH_SIZE,
-        seed=42,
-        shuffle=True,
-        target_size=(IMG_HEIGHT, IMG_WIDTH)
-    )
-    testDataset = testGenerator.flow_from_dataframe(
-        dataframe=test_df,
-        class_mode='binary',
-        x_col="image",
-        y_col="label",
-        batch_size=BATCH_SIZE,
-        seed=42,
-        shuffle=True,
-        target_size=(IMG_HEIGHT, IMG_WIDTH)
-    )
-    images, labels = next(iter(testDataset))
-    print('Batch shape: ', images.shape)
-    print('Label shape: ', labels.shape)
-    plt.imshow(images[3])
-    plt.show()
-    print('Label: ', labels[3])
-    model = keras.Sequential([
-        keras.layers.InputLayer(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
-        keras.layers.Conv2D(64, (3, 3), activation='relu'),
-        keras.layers.MaxPooling2D((2, 2)),
-        keras.layers.Conv2D(128, (3, 3), activation='relu'),
-        keras.layers.MaxPooling2D((2, 2)),
-        keras.layers.Conv2D(256, (3, 3), activation='relu'),
-        keras.layers.MaxPooling2D((2, 2)),
-        keras.layers.Conv2D(512, (3, 3), activation='relu'),
-        keras.layers.GlobalAveragePooling2D(),
-        keras.layers.Dense(1, activation='sigmoid')
-    ])
-    epochs = 5
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    history = model.fit(trainDataset, epochs=epochs, validation_data=(valDataset))
-    plt.plot(history.history['accuracy'])
-    plt.plot(history.history['val_accuracy'])
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.legend(['Training', 'Validation'])
-    plt.show()
-    loss, acc = model.evaluate(testDataset)
-    print('Loss:', loss)
-    print('Accuracy:', acc)
+# def pre_built_dogs_cats():
+#     CATS = ['Abyssinian', 'Bengal', 'Birman', 'Bombay', 'British_Shorthair', 'Egyptian_Mau', 'Maine_Coon', 'Persian',
+#             'Ragdoll', 'Russian_Blue', 'Siamese', 'Sphynx']
+#     cats_images = []
+#     dogs_images = []
+#     for img in glob.glob('images/*.jpg'):
+#         if any(cat in img for cat in CATS):
+#             cats_images.append(img)
+#         else:
+#             dogs_images.append(img)
+#     print('There are {} images of cats'.format(len(cats_images)))
+#     print('There are {} images of dogs'.format(len(dogs_images)))
+#     # shuffle the lists
+#     np.random.shuffle(cats_images)
+#     np.random.shuffle(dogs_images)
+#     # split the data into train, validation and test sets
+#     train_d, val_d, test_d = np.split(dogs_images, [int(len(dogs_images) * 0.7), int(len(dogs_images) * 0.8)])
+#     train_c, val_c, test_c = np.split(cats_images, [int(len(cats_images) * 0.7), int(len(cats_images) * 0.8)])
+#     train_dog_df = pd.DataFrame({'image': train_d, 'label': 'dog'})
+#     val_dog_df = pd.DataFrame({'image': val_d, 'label': 'dog'})
+#     test_dog_df = pd.DataFrame({'image': test_d, 'label': 'dog'})
+#     train_cat_df = pd.DataFrame({'image': train_c, 'label': 'cat'})
+#     val_cat_df = pd.DataFrame({'image': val_c, 'label': 'cat'})
+#     test_cat_df = pd.DataFrame({'image': test_c, 'label': 'cat'})
+#     train_df = pd.concat([train_dog_df, train_cat_df])
+#     val_df = pd.concat([val_dog_df, val_cat_df])
+#     test_df = pd.concat([test_dog_df, test_cat_df])
+#     print('There are {} images for training'.format(len(train_df)))
+#     print('There are {} images for validation'.format(len(val_df)))
+#     print('There are {} images for testing'.format(len(test_df)))
+#     BATCH_SIZE = 32
+#     IMG_HEIGHT = 224
+#     IMG_WIDTH = 224
+#     trainGenerator = ImageDataGenerator(rescale=1. / 255.)
+#     valGenerator = ImageDataGenerator(rescale=1. / 255.)
+#     testGenerator = ImageDataGenerator(rescale=1. / 255.)
+#     trainDataset = trainGenerator.flow_from_dataframe(
+#         dataframe=train_df,
+#         class_mode="binary",
+#         x_col="image",
+#         y_col="label",
+#         batch_size=BATCH_SIZE,
+#         seed=42,
+#         shuffle=True,
+#         target_size=(IMG_HEIGHT, IMG_WIDTH)
+#     )
+#     valDataset = valGenerator.flow_from_dataframe(
+#         dataframe=val_df,
+#         class_mode='binary',
+#         x_col="image",
+#         y_col="label",
+#         batch_size=BATCH_SIZE,
+#         seed=42,
+#         shuffle=True,
+#         target_size=(IMG_HEIGHT, IMG_WIDTH)
+#     )
+#     testDataset = testGenerator.flow_from_dataframe(
+#         dataframe=test_df,
+#         class_mode='binary',
+#         x_col="image",
+#         y_col="label",
+#         batch_size=BATCH_SIZE,
+#         seed=42,
+#         shuffle=True,
+#         target_size=(IMG_HEIGHT, IMG_WIDTH)
+#     )
+#     images, labels = next(iter(testDataset))
+#     print('Batch shape: ', images.shape)
+#     print('Label shape: ', labels.shape)
+#     plt.imshow(images[3])
+#     plt.show()
+#     print('Label: ', labels[3])
+#     model = keras.Sequential([
+#         keras.layers.InputLayer(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
+#         keras.layers.Conv2D(64, (3, 3), activation='relu'),
+#         keras.layers.MaxPooling2D((2, 2)),
+#         keras.layers.Conv2D(128, (3, 3), activation='relu'),
+#         keras.layers.MaxPooling2D((2, 2)),
+#         keras.layers.Conv2D(256, (3, 3), activation='relu'),
+#         keras.layers.MaxPooling2D((2, 2)),
+#         keras.layers.Conv2D(512, (3, 3), activation='relu'),
+#         keras.layers.GlobalAveragePooling2D(),
+#         keras.layers.Dense(1, activation='sigmoid')
+#     ])
+#     epochs = 5
+#     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+#     history = model.fit(trainDataset, epochs=epochs, validation_data=(valDataset))
+#     plt.plot(history.history['accuracy'])
+#     plt.plot(history.history['val_accuracy'])
+#     plt.xlabel('Epoch')
+#     plt.ylabel('Accuracy')
+#     plt.legend(['Training', 'Validation'])
+#     plt.show()
+#     loss, acc = model.evaluate(testDataset)
+#     print('Loss:', loss)
+#     print('Accuracy:', acc)
 
 
 def custom_neural_net():
@@ -155,7 +154,8 @@ def custom_neural_net():
     # plotImages(test_images)
     # print(test_labels)
 
-    k_fold_path = 'mixed_dataset/k-fold'
+    # k_fold_path = 'mixed_dataset/k-fold'
+    k_fold_path = 'imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
@@ -326,7 +326,8 @@ def plot_confusion_matrix(cm, classes, title, save_file=None, normalize=False, c
 
 
 def vgg16_neural_net():
-    k_fold_path = 'mixed_dataset/k-fold'
+    # k_fold_path = 'mixed_dataset/k-fold'
+    k_fold_path = 'imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
@@ -456,7 +457,7 @@ def vgg16_neural_net():
 
 def predict_and_plot(file_name):
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input) \
-        .flow_from_directory(directory='mixed_dataset/k-fold', target_size=(224, 224), classes=labels, batch_size=50)
+        .flow_from_directory(directory='imageSet', target_size=(224, 224), classes=labels, batch_size=50)
 
     final_model = keras.models.load_model(file_name)
 
@@ -479,7 +480,8 @@ def predict_and_plot(file_name):
 
 
 def resnet50_neural_net():
-    k_fold_path = 'mixed_dataset/k-fold'
+    # k_fold_path = 'mixed_dataset/k-fold'
+    k_fold_path = 'imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.resnet50.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
@@ -506,7 +508,7 @@ def resnet50_neural_net():
             layer.trainable = False
 
         flatten = keras.layers.Flatten()(model.output)
-        output = keras.layers.Dense(3, activation='softmax')(flatten)
+        output = keras.layers.Dense(2, activation='softmax')(flatten)
         model = keras.Model(model.input, output)
 
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001),
@@ -608,7 +610,8 @@ def resnet50_neural_net():
 
 
 def densenet201_neural_net():
-    k_fold_path = 'mixed_dataset/k-fold'
+    # k_fold_path = 'mixed_dataset/k-fold'
+    k_fold_path = 'imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.densenet.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
@@ -635,7 +638,7 @@ def densenet201_neural_net():
             layer.trainable = False
 
         flatten = keras.layers.Flatten()(model.output)
-        output = keras.layers.Dense(3, activation='softmax')(flatten)
+        output = keras.layers.Dense(2, activation='softmax')(flatten)
         model = keras.Model(model.input, output)
 
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001),
@@ -737,7 +740,8 @@ def densenet201_neural_net():
 
 
 def inception_neural_net():
-    k_fold_path = 'mixed_dataset/k-fold'
+    # k_fold_path = 'mixed_dataset/k-fold'
+    k_fold_path = 'imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.inception_v3.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
@@ -764,7 +768,7 @@ def inception_neural_net():
             layer.trainable = False
 
         flatten = keras.layers.Flatten()(model.output)
-        output = keras.layers.Dense(3, activation='softmax')(flatten)
+        output = keras.layers.Dense(2, activation='softmax')(flatten)
         model = keras.Model(model.input, output)
 
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001),
@@ -866,7 +870,8 @@ def inception_neural_net():
 
 
 def inception_bagging():
-    k_fold_path = 'mixed_dataset/k-fold'
+    # k_fold_path = 'mixed_dataset/k-fold'
+    k_fold_path = 'imageSet'
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.inception_v3.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170,
                              shuffle=True)
@@ -929,7 +934,8 @@ def inception_bagging():
 
 
 def manual_evaluation():
-    k_fold_path = 'mixed_dataset/k-fold'
+    # k_fold_path = 'mixed_dataset/k-fold'
+    k_fold_path = 'imageSet'
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.inception_v3.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170,
                              shuffle=True)
@@ -984,7 +990,7 @@ def evaluate_model(trainX, trainy, testX, testy):
         layer.trainable = False
 
     flatten = keras.layers.Flatten()(model.output)
-    output = keras.layers.Dense(3, activation='softmax')(flatten)
+    output = keras.layers.Dense(2, activation='softmax')(flatten)
     model = keras.Model(model.input, output)
 
     model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001),
