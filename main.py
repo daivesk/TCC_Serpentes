@@ -19,275 +19,6 @@ from PIL import Image
 
 labels = ['medico', 'nao-medico']
 
-
-# def snakes_in_brazil():
-# # search for snakes
-#     snakes = species.search(q='Serpentes', limit=1000) # adjust limit
-
-# # filter snakes found in Brazil
-#     brazil_snakes = []
-#     for snake in snakes['results']:
-#         species_key = snake['key']
-#         occ = occurrences.search(country='BR', taxonKey=species_key, limit=1)
-#         if occ['count'] > 0:
-#             brazil_snakes.append(snake['scientificName'])
-# # now, brazil_snakes contain a list of snakes found in Brazil
-
-#     snake_images = {}
-
-#     for snake_name in brazil_snakes:
-#         # search for occurences with images for each species
-#         occ_data = occurrences.search(scientificName=snake_name, country='BR', mediaType='StillImage', limit=20)
-
-#         # extract image URLs
-#         images = []
-#         for record in occ_data['results']:
-#             if 'media' in record and 'licence' in record and 'basisOfRecord' in record:
-#                 if 'creativecommons.org' in record['licence']: # filtering for Creative Commons licences
-#                     for media in record['media']:
-#                         if 'identifier' in media:
-#                             images.append(media['identifier'])
-#         snake_images[snake_name] = images
-#         # now snake_images is a dictionary with species names as keys as list of image URLs as values
-
-# not needed
-# def pre_built_dogs_cats():
-#     CATS = ['Abyssinian', 'Bengal', 'Birman', 'Bombay', 'British_Shorthair', 'Egyptian_Mau', 'Maine_Coon', 'Persian',
-#             'Ragdoll', 'Russian_Blue', 'Siamese', 'Sphynx']
-#     cats_images = []
-#     dogs_images = []
-#     for img in glob.glob('images/*.jpg'):
-#         if any(cat in img for cat in CATS):
-#             cats_images.append(img)
-#         else:
-#             dogs_images.append(img)
-#     print('There are {} images of cats'.format(len(cats_images)))
-#     print('There are {} images of dogs'.format(len(dogs_images)))
-#     # shuffle the lists
-#     np.random.shuffle(cats_images)
-#     np.random.shuffle(dogs_images)
-#     # split the data into train, validation and test sets
-#     train_d, val_d, test_d = np.split(dogs_images, [int(len(dogs_images) * 0.7), int(len(dogs_images) * 0.8)])
-#     train_c, val_c, test_c = np.split(cats_images, [int(len(cats_images) * 0.7), int(len(cats_images) * 0.8)])
-#     train_dog_df = pd.DataFrame({'image': train_d, 'label': 'dog'})
-#     val_dog_df = pd.DataFrame({'image': val_d, 'label': 'dog'})
-#     test_dog_df = pd.DataFrame({'image': test_d, 'label': 'dog'})
-#     train_cat_df = pd.DataFrame({'image': train_c, 'label': 'cat'})
-#     val_cat_df = pd.DataFrame({'image': val_c, 'label': 'cat'})
-#     test_cat_df = pd.DataFrame({'image': test_c, 'label': 'cat'})
-#     train_df = pd.concat([train_dog_df, train_cat_df])
-#     val_df = pd.concat([val_dog_df, val_cat_df])
-#     test_df = pd.concat([test_dog_df, test_cat_df])
-#     print('There are {} images for training'.format(len(train_df)))
-#     print('There are {} images for validation'.format(len(val_df)))
-#     print('There are {} images for testing'.format(len(test_df)))
-#     BATCH_SIZE = 32
-#     IMG_HEIGHT = 224
-#     IMG_WIDTH = 224
-#     trainGenerator = ImageDataGenerator(rescale=1. / 255.)
-#     valGenerator = ImageDataGenerator(rescale=1. / 255.)
-#     testGenerator = ImageDataGenerator(rescale=1. / 255.)
-#     trainDataset = trainGenerator.flow_from_dataframe(
-#         dataframe=train_df,
-#         class_mode="binary",
-#         x_col="image",
-#         y_col="label",
-#         batch_size=BATCH_SIZE,
-#         seed=42,
-#         shuffle=True,
-#         target_size=(IMG_HEIGHT, IMG_WIDTH)
-#     )
-#     valDataset = valGenerator.flow_from_dataframe(
-#         dataframe=val_df,
-#         class_mode='binary',
-#         x_col="image",
-#         y_col="label",
-#         batch_size=BATCH_SIZE,
-#         seed=42,
-#         shuffle=True,
-#         target_size=(IMG_HEIGHT, IMG_WIDTH)
-#     )
-#     testDataset = testGenerator.flow_from_dataframe(
-#         dataframe=test_df,
-#         class_mode='binary',
-#         x_col="image",
-#         y_col="label",
-#         batch_size=BATCH_SIZE,
-#         seed=42,
-#         shuffle=True,
-#         target_size=(IMG_HEIGHT, IMG_WIDTH)
-#     )
-#     images, labels = next(iter(testDataset))
-#     print('Batch shape: ', images.shape)
-#     print('Label shape: ', labels.shape)
-#     plt.imshow(images[3])
-#     plt.show()
-#     print('Label: ', labels[3])
-#     model = keras.Sequential([
-#         keras.layers.InputLayer(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
-#         keras.layers.Conv2D(64, (3, 3), activation='relu'),
-#         keras.layers.MaxPooling2D((2, 2)),
-#         keras.layers.Conv2D(128, (3, 3), activation='relu'),
-#         keras.layers.MaxPooling2D((2, 2)),
-#         keras.layers.Conv2D(256, (3, 3), activation='relu'),
-#         keras.layers.MaxPooling2D((2, 2)),
-#         keras.layers.Conv2D(512, (3, 3), activation='relu'),
-#         keras.layers.GlobalAveragePooling2D(),
-#         keras.layers.Dense(1, activation='sigmoid')
-#     ])
-#     epochs = 5
-#     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-#     history = model.fit(trainDataset, epochs=epochs, validation_data=(valDataset))
-#     plt.plot(history.history['accuracy'])
-#     plt.plot(history.history['val_accuracy'])
-#     plt.xlabel('Epoch')
-#     plt.ylabel('Accuracy')
-#     plt.legend(['Training', 'Validation'])
-#     plt.show()
-#     loss, acc = model.evaluate(testDataset)
-#     print('Loss:', loss)
-#     print('Accuracy:', acc)
-
-
-def custom_neural_net():
-    # test_images, test_labels = next(test_batches)
-
-    # plotImages(test_images)
-    # print(test_labels)
-
-    # k_fold_path = 'mixed_dataset/k-fold'
-    k_fold_path = 'imageSet'
-
-    k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input) \
-        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
-
-    kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
-    k_fold_input, k_fold_labels = k_fold_batches.next()
-
-    fold_no = 1
-    history_per_fold = []
-    histories = {'accuracy': [], 'f1_score': [], 'val_accuracy': [], 'val_f1_score': []}
-    scores_per_fold = []
-    # models_per_fold = []
-    predictions = []
-    correct_predictions = []
-
-    for train, test in kf.split(k_fold_input, k_fold_labels):
-        print(f'Training for fold {fold_no} ...')
-
-        model = keras.Sequential([
-            keras.layers.InputLayer(input_shape=(224, 224, 3)),
-            keras.layers.Conv2D(64, (3, 3), activation='relu'),
-            keras.layers.MaxPooling2D((2, 2)),
-            keras.layers.Conv2D(128, (3, 3), activation='relu'),
-            keras.layers.MaxPooling2D((2, 2)),
-            keras.layers.Conv2D(256, (3, 3), activation='relu'),
-            keras.layers.MaxPooling2D((2, 2)),
-            keras.layers.Conv2D(512, (3, 3), activation='relu'),
-            keras.layers.GlobalAveragePooling2D(),
-            keras.layers.Dense(units=3, activation='softmax')
-        ])
-
-        model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001),
-                      loss='categorical_crossentropy',
-                      metrics=['accuracy', Precision(), Recall(), F1Score()])
-
-        history = model.fit(k_fold_input[train], k_fold_labels[train],
-                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=20, verbose=2)
-        history_per_fold.append(history)
-        histories['accuracy'].append(history.history['accuracy'])
-        histories['f1_score'].append(np.mean(history.history['f1_score'], axis=-1))
-        histories['val_accuracy'].append(history.history['val_accuracy'])
-        histories['val_f1_score'].append(np.mean(history.history['val_f1_score'], axis=-1))
-
-        print_summary(model)
-
-        model.save('models/custom/' + str(fold_no))
-        # model = keras.models.load_model('models/custom/' + str(fold_no))
-        # models_per_fold.append(model)
-
-        scores = model.evaluate(k_fold_input[test], k_fold_labels[test], verbose=2)
-        scores_per_fold.append(scores)
-
-        predict = model.predict(x=k_fold_input[test])
-        predictions.append(np.argmax(predict, axis=1))
-        correct_predictions.append(np.argmax(k_fold_labels[test], axis=-1))
-
-        fold_no = fold_no + 1
-
-    predictions = np.concatenate(predictions)
-    correct_predictions = np.concatenate(correct_predictions)
-    best_fold_index = 0
-    best_acc = 0.0
-    best_loss = 1.0
-    accs = []
-    precisions = []
-    recalls = []
-    f1s = []
-    for score in scores_per_fold:
-        accs.append(score[1])
-        precisions.append(score[2])
-        recalls.append(score[3])
-        f1s.append(np.mean(score[4]))
-        if score[1] > best_acc:
-            best_acc = score[1]
-            best_loss = score[0]
-            best_fold_index = scores_per_fold.index(score)
-        elif score[1] == best_acc and score[0] < best_loss:
-            best_acc = score[1]
-            best_loss = score[0]
-            best_fold_index = scores_per_fold.index(score)
-
-    print('best scores in fold: ' + str(best_fold_index))
-    print(scores_per_fold[best_fold_index])
-    print('Accuracy: ', (np.mean(accs)))
-    print('Precision: ', (np.mean(precisions)))
-    print('Recall: ', (np.mean(recalls)))
-    print('F1: ', (np.mean(f1s)))
-
-    # del models_per_fold
-    del k_fold_batches
-    del test
-    del scores
-    del model
-    del train
-    del kf
-    del f1s
-    del recalls
-    del precisions
-    del accs
-
-    gc.collect()
-
-    for i in range(len(histories['accuracy'])):
-        acc = histories['accuracy'][i]
-        val_acc = histories['val_accuracy'][i]
-        epochs = range(1, len(acc) + 1)
-        plt.plot(epochs, acc, 'y', label='Training acc')
-        plt.plot(epochs, val_acc, 'r', label='Validation acc')
-        plt.title('Training and validation accuracy')
-        plt.xlabel('Epochs')
-        plt.ylabel('Accuracy')
-        plt.legend()
-        plt.savefig('models/custom/custom_kfold' + str(i) + '_acc.svg')
-        plt.show()
-
-        f1_score = histories['f1_score'][i]
-        val_f1_score = histories['val_f1_score'][i]
-        plt.plot(epochs, f1_score, 'y', label='Training F1 score')
-        plt.plot(epochs, val_f1_score, 'r', label='Validation F1 score')
-        plt.title('Training and validation F1 score')
-        plt.xlabel('Epochs')
-        plt.ylabel('F1 score')
-        plt.legend()
-        plt.savefig('models/custom/custom_kfold' + str(i) + '_f1.svg')
-        plt.show()
-
-    # cm_ong = confusion_matrix(y_true=correct_predictions, y_pred=predictions)
-    # plot_confusion_matrix(cm=cm_ong, classes=labels, title="custom net 5-Fold", save_file='models/custom/custom_kfold_cm.svg')
-
-
 def plotImages(images_arr):
     fig, axes = plt.subplots(1, 10, figsize=(20, 20))
     axes = axes.flatten()
@@ -328,16 +59,16 @@ def plot_confusion_matrix(cm, classes, title, save_file=None, normalize=False, c
 
 def vgg16_neural_net():
     # k_fold_path = 'mixed_dataset/k-fold'
-    k_fold_path = './imageSet'
+    k_fold_path = './train'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input) \
-        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=9236)
+        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
     # como fazer leitura das imagens para gerar os k-folds
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
     k_fold_input, k_fold_labels = k_fold_batches.next()
 
-    fold_no = 5
+    fold_no = 1
     history_per_fold = []
     histories = {'accuracy': [], 'f1_score': [], 'val_accuracy': [], 'val_f1_score': []}
     scores_per_fold = []
@@ -482,10 +213,10 @@ def predict_and_plot(file_name):
 
 def resnet50_neural_net():
     # k_fold_path = 'mixed_dataset/k-fold'
-    k_fold_path = 'imageSet'
+    k_fold_path = './train'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.resnet50.preprocess_input) \
-        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
+        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
 
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -612,10 +343,10 @@ def resnet50_neural_net():
 
 def densenet201_neural_net():
     # k_fold_path = 'mixed_dataset/k-fold'
-    k_fold_path = 'imageSet'
+    k_fold_path = './train'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.densenet.preprocess_input) \
-        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
+        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
 
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -742,10 +473,10 @@ def densenet201_neural_net():
 
 def inception_neural_net():
     # k_fold_path = 'mixed_dataset/k-fold'
-    k_fold_path = 'imageSet'
+    k_fold_path = './train'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.inception_v3.preprocess_input) \
-        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=170)
+        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
 
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -1057,9 +788,9 @@ if __name__ == '__main__':
     # pre_built_dogs_cats()
     # custom_neural_net()
     vgg16_neural_net()
-    # resnet50_neural_net()
-    # densenet201_neural_net()
-    # inception_neural_net()
+    resnet50_neural_net()
+    densenet201_neural_net()
+    inception_neural_net()
     # inception_bagging()
     # predict_and_plot('models/vgg16/1')
     # manual_evaluation()
