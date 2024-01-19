@@ -91,7 +91,7 @@ def vgg16_neural_net():
         # units => número de espécies das quais eu tenho imagens
         model.add(keras.layers.Dense(units=2, activation='softmax'))
         model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.0001),
-                      loss='categorical_crossentropy',
+                      loss='binary_crossentropy',
                       metrics=['accuracy', Precision(), Recall(), F1Score()])
 
         history = model.fit(k_fold_input[train], k_fold_labels[train],
@@ -783,6 +783,29 @@ def print_preprocess_images():
     plt.savefig('pre-process/3.png')
 
 
+def load_model_from_file(model_path):
+    return keras.models.load_model(model_path)
+
+def calculate_f1_score(model, batches):
+    predictions = model.predict(batches)
+    predicted_classes = np.argmax(predictions, axis=1)
+    true_classes = batches.classes
+    return f1_score(true_classes, predicted_classes, average='macro')
+
+def load_test_data(directory, target_size, classes, batch_size):
+    test_datagen = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input)
+    return test_datagen.flow_from_directory(directory=directory, 
+                                            target_size=target_size,
+                                            classes=classes,
+                                            batch_size=batch_size, 
+                                            shuffle=False)
+
+def ensemble_predictions(models, weights, test_batches):
+    predictions = [model.predict(test_batches) for model in models]
+    predictions = np.array(predictions)
+    weighted_predictions = np.tensordot(predictions, weights, axes=((0),(0)))
+    return np.argmax(weighted_predictions, axis=1)
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     # pre_built_dogs_cats()
@@ -795,3 +818,27 @@ if __name__ == '__main__':
     # predict_and_plot('models/vgg16/1')
     # manual_evaluation()
     # print_preprocess_images()
+    
+    model_paths = ['./models/vgg16', './models/resnet', './models/densenet201', './models/inception v3']
+
+    # Load models
+    models = [load_model_from_file(path) for path in model_paths]
+
+    # Load test data
+    test_batches = load_test_data('path_to_test_data', (224, 224), ['class1', 'class2'], 32)
+
+    # Calculate F1 scores and weights
+    f1_scores = [calculate_f1_score(model, test_batches) for model in models]
+    total_f1 = sum(f1_scores)
+    weights = [f1 / total_f1 for f1 in f1_scores]
+
+    # Reset test_batches before ensemble predictions
+    test_batches.reset()
+    
+    # Ensemble predictions
+    ensemble_pred = ensemble_predictions(models, weights, test_batches)
+
+    # Evaluate ensemble model
+    true_classes = test_batches.classes
+    ensemble_f1 = f1_score(true_classes, ensemble_pred, average='macro')
+    print("Ensemble model F1 score: ", ensemble_f1)
