@@ -59,7 +59,8 @@ def plot_confusion_matrix(cm, classes, title, save_file=None, normalize=False, c
 
 def vgg16_neural_net():
     # k_fold_path = 'mixed_dataset/k-fold'
-    k_fold_path = './train'
+    # k_fold_path = './imageSet'
+    k_fold_path = './imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
@@ -69,6 +70,8 @@ def vgg16_neural_net():
     k_fold_input, k_fold_labels = k_fold_batches.next()
 
     fold_no = 1
+    all_predictions = []  # To store predictions from all folds
+    all_correct_predictions = []  # To store correct labels from all folds
     history_per_fold = []
     histories = {'accuracy': [], 'f1_score': [], 'val_accuracy': [], 'val_f1_score': []}
     scores_per_fold = []
@@ -95,7 +98,7 @@ def vgg16_neural_net():
                       metrics=['accuracy', Precision(), Recall(), F1Score()])
 
         history = model.fit(k_fold_input[train], k_fold_labels[train],
-                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=20, verbose=2)
+                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=35, verbose=2)
         history_per_fold.append(history)
         histories['accuracy'].append(history.history['accuracy'])
         histories['f1_score'].append(np.mean(history.history['f1_score'], axis=-1))
@@ -109,14 +112,25 @@ def vgg16_neural_net():
         scores = model.evaluate(k_fold_input[test], k_fold_labels[test], verbose=2)
         scores_per_fold.append(scores)
 
-        predict = model.predict(x=k_fold_input[test])
-        predictions.append(np.argmax(predict, axis=1))
-        correct_predictions.append(np.argmax(k_fold_labels[test], axis=-1))
+        # Get predictions for the current test fold
+        predict_fold = model.predict(x=k_fold_input[test])
+        predictions_fold = np.argmax(predict_fold, axis=1)
+        correct_predictions_fold = np.argmax(k_fold_labels[test], axis=1)
 
-        fold_no = fold_no + 1
+        # Compute and save confusion matrix for the current fold
+        cm_fold = confusion_matrix(y_true=correct_predictions_fold, y_pred=predictions_fold)
+        plot_confusion_matrix(cm=cm_fold, classes=labels, 
+                              title=f"VGG16 Fold {fold_no}", 
+                              save_file=f'models/vgg16/vgg16_fold{fold_no}_cm.svg')
 
-    predictions = np.concatenate(predictions)
-    correct_predictions = np.concatenate(correct_predictions)
+        # Accumulate overall predictions and correct labels
+        all_predictions.append(predictions_fold.flatten())
+        all_correct_predictions.append(correct_predictions_fold.flatten())
+                                     
+        fold_no += 1
+
+    # predictions = np.concatenate(predictions)
+    # correct_predictions = np.concatenate(correct_predictions)
     best_fold_index = 0
     best_acc = 0.0
     best_loss = 1.0
@@ -144,6 +158,13 @@ def vgg16_neural_net():
     print('Precision: ', (np.mean(precisions)))
     print('Recall: ', (np.mean(recalls)))
     print('F1: ', (np.mean(f1s)))
+
+        # Concatenate all predictions and correct_predictions from each fold
+    all_predictions = np.concatenate(all_predictions)
+    all_correct_predictions = np.concatenate(all_correct_predictions)
+
+    cm_ong = confusion_matrix(y_true=all_correct_predictions, y_pred=all_predictions)
+    plot_confusion_matrix(cm=cm_ong, classes=labels, title="VGG16 5-Fold Overall", save_file='models/vgg16/vgg16_overall_cm.svg')
 
     # del models_per_fold
     del k_fold_batches
@@ -183,10 +204,6 @@ def vgg16_neural_net():
         plt.savefig('models/vgg16/vgg16_kfold' + str(i) + '_f1.svg')
         plt.show()
 
-    cm_ong = confusion_matrix(y_true=correct_predictions, y_pred=predictions)
-    plot_confusion_matrix(cm=cm_ong, classes=labels, title="VGG16 5-Fold", save_file='models/vgg16/vgg16_kfold_cm.svg')
-
-
 def predict_and_plot(file_name):
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input) \
         .flow_from_directory(directory='imageSet', target_size=(224, 224), classes=labels, batch_size=50)
@@ -213,7 +230,8 @@ def predict_and_plot(file_name):
 
 def resnet50_neural_net():
     # k_fold_path = 'mixed_dataset/k-fold'
-    k_fold_path = './train'
+    # k_fold_path = './train'
+    k_fold_path = './imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.resnet50.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
@@ -223,12 +241,15 @@ def resnet50_neural_net():
     k_fold_input, k_fold_labels = k_fold_batches.next()
 
     fold_no = 1
+    all_predictions = []  # To store predictions from all folds
+    all_correct_predictions = []  # To store correct labels from all folds
     history_per_fold = []
     histories = {'accuracy': [], 'f1_score': [], 'val_accuracy': [], 'val_f1_score': []}
     scores_per_fold = []
     # models_per_fold = []
     predictions = []
     correct_predictions = []
+
 
     for train, test in kf.split(k_fold_input, k_fold_labels):
         print(f'Training for fold {fold_no} ...')
@@ -248,7 +269,7 @@ def resnet50_neural_net():
                       metrics=['accuracy', Precision(), Recall(), F1Score()])
 
         history = model.fit(k_fold_input[train], k_fold_labels[train],
-                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=20, verbose=2)
+                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=35, verbose=2)
         history_per_fold.append(history)
         histories['accuracy'].append(history.history['accuracy'])
         histories['f1_score'].append(np.mean(history.history['f1_score'], axis=-1))
@@ -262,14 +283,25 @@ def resnet50_neural_net():
         scores = model.evaluate(k_fold_input[test], k_fold_labels[test], verbose=2)
         scores_per_fold.append(scores)
 
-        predict = model.predict(x=k_fold_input[test])
-        predictions.append(np.argmax(predict, axis=1))
-        correct_predictions.append(np.argmax(k_fold_labels[test], axis=-1))
+        # Get predictions for the current test fold
+        predict_fold = model.predict(x=k_fold_input[test])
+        predictions_fold = np.argmax(predict_fold, axis=1)
+        correct_predictions_fold = np.argmax(k_fold_labels[test], axis=1)
+
+        # Compute and save confusion matrix for the current fold
+        cm_fold = confusion_matrix(y_true=correct_predictions_fold, y_pred=predictions_fold)
+        plot_confusion_matrix(cm=cm_fold, classes=labels, 
+                              title=f"ResNet Fold {fold_no}", 
+                              save_file=f'models/resnet/resnet_fold{fold_no}_cm.svg')
+
+        # Accumulate overall predictions and correct labels
+        all_predictions.append(predictions_fold.flatten())
+        all_correct_predictions.append(correct_predictions_fold.flatten())
 
         fold_no = fold_no + 1
 
-    predictions = np.concatenate(predictions)
-    correct_predictions = np.concatenate(correct_predictions)
+    # predictions = np.concatenate(predictions)
+    # correct_predictions = np.concatenate(correct_predictions)
     best_fold_index = 0
     best_acc = 0.0
     best_loss = 1.0
@@ -297,6 +329,14 @@ def resnet50_neural_net():
     print('Precision: ', (np.mean(precisions)))
     print('Recall: ', (np.mean(recalls)))
     print('F1: ', (np.mean(f1s)))
+
+    # Concatenate all predictions and correct_predictions from each fold
+    all_predictions = np.concatenate(all_predictions)
+    all_correct_predictions = np.concatenate(all_correct_predictions)
+
+    cm_ong = confusion_matrix(y_true=all_correct_predictions, y_pred=all_predictions)
+    plot_confusion_matrix(cm=cm_ong, classes=labels, title="ResNet 5-Fold Overall", save_file='models/resnet/resnet_overall_cm.svg')
+
 
     # del models_per_fold
     del k_fold_batches
@@ -336,14 +376,10 @@ def resnet50_neural_net():
         plt.savefig('models/resnet/resnet_kfold' + str(i) + '_f1.svg')
         plt.show()
 
-    cm_ong = confusion_matrix(y_true=correct_predictions, y_pred=predictions)
-    plot_confusion_matrix(cm=cm_ong, classes=labels, title="Resnet 5-Fold",
-                          save_file='models/resnet/resnet_kfold_cm.svg')
-
-
 def densenet201_neural_net():
     # k_fold_path = 'mixed_dataset/k-fold'
-    k_fold_path = './train'
+    # k_fold_path = './train'
+    k_fold_path = './imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.densenet.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
@@ -353,6 +389,8 @@ def densenet201_neural_net():
     k_fold_input, k_fold_labels = k_fold_batches.next()
 
     fold_no = 1
+    all_predictions = []  # To store predictions from all folds
+    all_correct_predictions = []  # To store correct labels from all folds
     history_per_fold = []
     histories = {'accuracy': [], 'f1_score': [], 'val_accuracy': [], 'val_f1_score': []}
     scores_per_fold = []
@@ -378,7 +416,7 @@ def densenet201_neural_net():
                       metrics=['accuracy', Precision(), Recall(), F1Score()])
 
         history = model.fit(k_fold_input[train], k_fold_labels[train],
-                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=20, verbose=2)
+                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=35, verbose=2)
         history_per_fold.append(history)
         histories['accuracy'].append(history.history['accuracy'])
         histories['f1_score'].append(np.mean(history.history['f1_score'], axis=-1))
@@ -392,14 +430,25 @@ def densenet201_neural_net():
         scores = model.evaluate(k_fold_input[test], k_fold_labels[test], verbose=2)
         scores_per_fold.append(scores)
 
-        predict = model.predict(x=k_fold_input[test])
-        predictions.append(np.argmax(predict, axis=1))
-        correct_predictions.append(np.argmax(k_fold_labels[test], axis=-1))
+        # Get predictions for the current test fold
+        predict_fold = model.predict(x=k_fold_input[test])
+        predictions_fold = np.argmax(predict_fold, axis=1)
+        correct_predictions_fold = np.argmax(k_fold_labels[test], axis=1)
+
+        # Compute and save confusion matrix for the current fold
+        cm_fold = confusion_matrix(y_true=correct_predictions_fold, y_pred=predictions_fold)
+        plot_confusion_matrix(cm=cm_fold, classes=labels, 
+                              title=f"DenseNet Fold {fold_no}", 
+                              save_file=f'models/densenet/densenet_fold{fold_no}_cm.svg')
+
+        # Accumulate overall predictions and correct labels
+        all_predictions.append(predictions_fold.flatten())
+        all_correct_predictions.append(correct_predictions_fold.flatten())
 
         fold_no = fold_no + 1
 
-    predictions = np.concatenate(predictions)
-    correct_predictions = np.concatenate(correct_predictions)
+    # predictions = np.concatenate(predictions)
+    # correct_predictions = np.concatenate(correct_predictions)
     best_fold_index = 0
     best_acc = 0.0
     best_loss = 1.0
@@ -427,6 +476,14 @@ def densenet201_neural_net():
     print('Precision: ', (np.mean(precisions)))
     print('Recall: ', (np.mean(recalls)))
     print('F1: ', (np.mean(f1s)))
+    
+    # Concatenate all predictions and correct_predictions from each fold
+    all_predictions = np.concatenate(all_predictions)
+    all_correct_predictions = np.concatenate(all_correct_predictions)
+
+    cm_ong = confusion_matrix(y_true=all_correct_predictions, y_pred=all_predictions)
+    plot_confusion_matrix(cm=cm_ong, classes=labels, title="DenseNet 5-Fold Overall", save_file='models/densenet/densenet_overall_cm.svg')
+
 
     # del models_per_fold
     del k_fold_batches
@@ -466,14 +523,10 @@ def densenet201_neural_net():
         plt.savefig('models/densenet/densenet_kfold' + str(i) + '_f1.svg')
         plt.show()
 
-    cm_ong = confusion_matrix(y_true=correct_predictions, y_pred=predictions)
-    plot_confusion_matrix(cm=cm_ong, classes=labels, title="Densenet 5-Fold",
-                          save_file='models/densenet/densenet_kfold_cm.svg')
-
-
 def inception_neural_net():
     # k_fold_path = 'mixed_dataset/k-fold'
-    k_fold_path = './train'
+    # k_fold_path = './train'
+    k_fold_path = './imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.inception_v3.preprocess_input) \
         .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
@@ -483,6 +536,8 @@ def inception_neural_net():
     k_fold_input, k_fold_labels = k_fold_batches.next()
 
     fold_no = 1
+    all_predictions = []  # To store predictions from all folds
+    all_correct_predictions = []  # To store correct labels from all folds
     history_per_fold = []
     histories = {'accuracy': [], 'f1_score': [], 'val_accuracy': [], 'val_f1_score': []}
     scores_per_fold = []
@@ -508,7 +563,7 @@ def inception_neural_net():
                       metrics=['accuracy', Precision(), Recall(), F1Score()])
 
         history = model.fit(k_fold_input[train], k_fold_labels[train],
-                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=20, verbose=2)
+                            validation_data=(k_fold_input[test], k_fold_labels[test]), epochs=35, verbose=2)
         history_per_fold.append(history)
         histories['accuracy'].append(history.history['accuracy'])
         histories['f1_score'].append(np.mean(history.history['f1_score'], axis=-1))
@@ -522,14 +577,25 @@ def inception_neural_net():
         scores = model.evaluate(k_fold_input[test], k_fold_labels[test], verbose=2)
         scores_per_fold.append(scores)
 
-        predict = model.predict(x=k_fold_input[test])
-        predictions.append(np.argmax(predict, axis=1))
-        correct_predictions.append(np.argmax(k_fold_labels[test], axis=-1))
+        # Get predictions for the current test fold
+        predict_fold = model.predict(x=k_fold_input[test])
+        predictions_fold = np.argmax(predict_fold, axis=1)
+        correct_predictions_fold = np.argmax(k_fold_labels[test], axis=1)
+
+        # Compute and save confusion matrix for the current fold
+        cm_fold = confusion_matrix(y_true=correct_predictions_fold, y_pred=predictions_fold)
+        plot_confusion_matrix(cm=cm_fold, classes=labels, 
+                              title=f"Inception Fold {fold_no}", 
+                              save_file=f'models/inception/inception_fold{fold_no}_cm.svg')
+
+        # Accumulate overall predictions and correct labels
+        all_predictions.append(predictions_fold.flatten())
+        all_correct_predictions.append(correct_predictions_fold.flatten())
 
         fold_no = fold_no + 1
 
-    predictions = np.concatenate(predictions)
-    correct_predictions = np.concatenate(correct_predictions)
+    # predictions = np.concatenate(predictions)
+    # correct_predictions = np.concatenate(correct_predictions)
     best_fold_index = 0
     best_acc = 0.0
     best_loss = 1.0
@@ -557,6 +623,13 @@ def inception_neural_net():
     print('Precision: ', (np.mean(precisions)))
     print('Recall: ', (np.mean(recalls)))
     print('F1: ', (np.mean(f1s)))
+    
+    # Concatenate all predictions and correct_predictions from each fold
+    all_predictions = np.concatenate(all_predictions)
+    all_correct_predictions = np.concatenate(all_correct_predictions)
+
+    cm_ong = confusion_matrix(y_true=all_correct_predictions, y_pred=all_predictions)
+    plot_confusion_matrix(cm=cm_ong, classes=labels, title="Inception 5-Fold Overall", save_file='models/inception/inception_overall_cm.svg')
 
     # del models_per_fold
     del k_fold_batches
@@ -595,11 +668,6 @@ def inception_neural_net():
         plt.legend()
         plt.savefig('models/inception/inception_kfold' + str(i) + '_f1.svg')
         plt.show()
-
-    cm_ong = confusion_matrix(y_true=correct_predictions, y_pred=predictions)
-    plot_confusion_matrix(cm=cm_ong, classes=labels, title="Inception 5-Fold",
-                          save_file='models/inception/densenet_kfold_cm.svg')
-
 
 def inception_bagging():
     # k_fold_path = 'mixed_dataset/k-fold'
