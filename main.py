@@ -63,7 +63,7 @@ def vgg16_neural_net():
     k_fold_path = './imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.vgg16.preprocess_input) \
-        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
+        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=6000)
     # como fazer leitura das imagens para gerar os k-folds
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -234,7 +234,7 @@ def resnet50_neural_net():
     k_fold_path = './imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.resnet50.preprocess_input) \
-        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
+        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=6000)
 
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -382,7 +382,7 @@ def densenet201_neural_net():
     k_fold_path = './imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.densenet.preprocess_input) \
-        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
+        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=6000)
 
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
@@ -529,7 +529,7 @@ def inception_neural_net():
     k_fold_path = './imageSet'
 
     k_fold_batches = ImageDataGenerator(preprocessing_function=tf.keras.applications.inception_v3.preprocess_input) \
-        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=512)
+        .flow_from_directory(directory=k_fold_path, target_size=(224, 224), classes=labels, batch_size=6000)
 
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
